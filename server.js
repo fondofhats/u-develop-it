@@ -39,7 +39,7 @@ const db = new sqlite3.Database('./db/election.db', err => {
   }); */
 
 /* INSERT new row */
-const insertSql = `INSERT INTO candidates (id, first_name, last_name, industry_connected)
+/* const insertSql = `INSERT INTO candidates (id, first_name, last_name, industry_connected)
                     VALUES (?,?,?,?)`;
 const params= [1,'Ronald','Firbank',1];
 //ES5 function so I can use "this" keyword
@@ -48,7 +48,58 @@ db.run(insertSql,params, function(err, result){
         console.log(err);
     }
     console.log(result, this.lastID);
+}); */
+
+/* GET all candidates */
+app.get('/api/candidates', (req, res) => {
+    const sql = `SELECT * FROM candidates`;
+    const params = [];
+    db.all(sql,params, (err, rows) => {
+        if(err){
+            res.status(500).json({error: err.message});
+            return;
+        }
+        res.json({
+            message: 'success',
+            data: rows
+        });
+    });
 });
+
+/* GET a single candidate */
+app.get('/api/candidate/:id', (req, res) => {
+    const sql = `SELECT * FROM candidates 
+                 WHERE id = ?`;
+    const params = [req.params.id];
+    db.get(sql, params, (err, row) => {
+      if (err) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+  
+      res.json({
+        message: 'success',
+        data: row
+      });
+    });
+  });
+  
+  /* DELETE single record */
+app.delete('/api/candidate/:id', (req, res) => {
+    const sql = `DELETE FROM candidates WHERE id = ?`;
+    const params = [req.params.id];
+    db.run(sql, params, function(err, result) {
+        if(err){
+            res.status(400).json({error: err.message});
+            return;
+        }
+        res.json({
+            message: 'successfully deleted',
+            changes: this.change
+        });
+    });
+});  
+
 
 app.use((req,res)=>{
     res.status(404).end();
